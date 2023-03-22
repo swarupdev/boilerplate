@@ -9,7 +9,8 @@ COPY package.json ./
 COPY pnpm-lock.yaml ./
 
 RUN npm install -g pnpm
-RUN npm install -g typescript
+RUN npm install -g --unsafe-perm=true --allow-root
+# RUN npm install -g typescript
 
 RUN pnpm install
 

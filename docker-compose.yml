@@ -6,7 +6,7 @@ services:
     restart: always
     environment:
       - POSTGRES_PASSWORD=pass123
-      - POSTGRES_DB=boilerplate
+      - POSTGRES_DB=postgres
     ports:
       - 5432:5432
     networks:
