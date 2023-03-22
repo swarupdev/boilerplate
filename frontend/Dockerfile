@@ -15,7 +15,7 @@ RUN pnpm install
 
 COPY . .
 
-RUN pnpm dev
+CMD ["sh", "-c", "npm run dev"]
 
 EXPOSE 5000
 
