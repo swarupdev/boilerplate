@@ -15,7 +15,7 @@ RUN pnpm install
 
 COPY . .
 
-CMD ["sh", "-c", "npm run dev"]
+CMD ["sh", "-c", "pnpm run dev"]
 
 EXPOSE 5000
 # CMD [ "node", "dist/index.js" ]

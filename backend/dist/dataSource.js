@@ -8,11 +8,12 @@ const typeorm_1 = require("typeorm");
 const path_1 = __importDefault(require("path"));
 exports.dataSource = new typeorm_1.DataSource({
     url: process.env.DATABASE_URL,
-    type: 'postgres',
+    type: "postgres",
+    host: "postgres",
     logging: false,
     synchronize: true,
-    entities: [path_1.default.join(__dirname, './entities/*')],
-    migrations: [path_1.default.join(__dirname, './migrations/*')],
+    entities: [path_1.default.join(__dirname, "./entities/*")],
+    migrations: [path_1.default.join(__dirname, "./migrations/*")],
     ssl: false,
 });
 //# sourceMappingURL=dataSource.js.map

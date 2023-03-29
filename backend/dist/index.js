@@ -18,7 +18,19 @@ const dataSource_1 = require("./dataSource");
 const user_1 = require("./resolvers/user");
 const body_parser_1 = require("body-parser");
 const main = async () => {
-    await dataSource_1.dataSource.initialize();
+    let retries = 10;
+    while (retries) {
+        try {
+            await dataSource_1.dataSource.initialize();
+            break;
+        }
+        catch (err) {
+            console.log(err);
+            retries -= 1;
+            console.log(`retries left: ${retries}`);
+            await new Promise((res) => setTimeout(res, 20000));
+        }
+    }
     const app = (0, express_1.default)();
     const RedisStore = (0, connect_redis_1.default)(express_session_1.default);
     const redis = new ioredis_1.default({
@@ -27,7 +39,7 @@ const main = async () => {
         username: process.env.REDIS_USERNAME,
         password: process.env.REDIS_PASSWORD,
     });
-    app.set('trust proxy', 1);
+    app.set("trust proxy", 1);
     app.use((0, cors_1.default)({
         origin: process.env.CORS_ORIGIN,
         credentials: true,
@@ -42,10 +54,10 @@ const main = async () => {
             maxAge: 1000 * 60 * 60 * 24 * 30,
             httpOnly: true,
             secure: constants_1.__prod__,
-            sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
+            sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
         },
         saveUninitialized: false,
-        secret: 'avneoanveoanveanveoanevoa',
+        secret: "avneoanveoanveanveoanevoa",
         resave: false,
     }));
     const apolloServer = new server_1.ApolloServer({
@@ -56,7 +68,7 @@ const main = async () => {
         plugins: [(0, server_plugin_landing_page_graphql_playground_1.ApolloServerPluginLandingPageGraphQLPlayground)()],
     });
     await apolloServer.start();
-    app.use('/graphql', (0, cors_1.default)({
+    app.use("/graphql", (0, cors_1.default)({
         origin: process.env.CORS_ORIGIN,
     }), (0, body_parser_1.json)(), (0, express4_1.expressMiddleware)(apolloServer, {
         context: ({ req, res }) => ({
@@ -65,8 +77,8 @@ const main = async () => {
             redis,
         }),
     }));
-    app.get('/', (_, res) => {
-        res.send('Hello');
+    app.get("/", (_, res) => {
+        res.send("Hello");
     });
     const PORT = process.env.PORT;
     app.listen(PORT, () => {

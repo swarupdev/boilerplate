@@ -1,24 +1,36 @@
 // import 'reflect-metadata';
-import 'dotenv-safe/config';
+import "dotenv-safe/config";
 // @ts-ignore
-import { ApolloServerPluginLandingPageGraphQLPlayground } from '@apollo/server-plugin-landing-page-graphql-playground';
-import { ApolloServer } from '@apollo/server';
-import connectRedis from 'connect-redis';
-import cors from 'cors';
-import express from 'express';
-import { expressMiddleware } from '@apollo/server/express4';
-import session from 'express-session';
-import Redis from 'ioredis';
-import { buildSchema } from 'type-graphql';
-import { COOKIE_NAME, __prod__ } from './constants';
-import { dataSource } from './dataSource';
-import { UserResolver } from './resolvers/user';
-import { json } from 'body-parser';
-import { MyContext } from './types';
-import { Request, Response } from 'express';
+import { ApolloServerPluginLandingPageGraphQLPlayground } from "@apollo/server-plugin-landing-page-graphql-playground";
+import { ApolloServer } from "@apollo/server";
+import connectRedis from "connect-redis";
+import cors from "cors";
+import express from "express";
+import { expressMiddleware } from "@apollo/server/express4";
+import session from "express-session";
+import Redis from "ioredis";
+import { buildSchema } from "type-graphql";
+import { COOKIE_NAME, __prod__ } from "./constants";
+import { dataSource } from "./dataSource";
+import { UserResolver } from "./resolvers/user";
+import { json } from "body-parser";
+import { MyContext } from "./types";
+import { Request, Response } from "express";
 
 const main = async () => {
-  await dataSource.initialize();
+  let retries = 10;
+  while (retries) {
+    try {
+      await dataSource.initialize();
+      break;
+    } catch (err) {
+      console.log(err);
+      retries -= 1;
+      console.log(`retries left: ${retries}`);
+      // wait 5 seconds
+      await new Promise((res) => setTimeout(res, 20000));
+    }
+  }
 
   const app = express();
 
@@ -32,7 +44,7 @@ const main = async () => {
     password: process.env.REDIS_PASSWORD,
   });
 
-  app.set('trust proxy', 1);
+  app.set("trust proxy", 1);
   app.use(
     cors({
       origin: process.env.CORS_ORIGIN,
@@ -51,10 +63,10 @@ const main = async () => {
         maxAge: 1000 * 60 * 60 * 24 * 30, // 1 month
         httpOnly: true,
         secure: __prod__, //cookie only works in https
-        sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax', // must be 'none' to enable cross-site delivery
+        sameSite: process.env.NODE_ENV === "production" ? "none" : "lax", // must be 'none' to enable cross-site delivery
       },
       saveUninitialized: false,
-      secret: 'avneoanveoanveanveoanevoa',
+      secret: "avneoanveoanveanveoanevoa",
       resave: false,
     })
   );
@@ -72,7 +84,7 @@ const main = async () => {
   await apolloServer.start();
 
   app.use(
-    '/graphql',
+    "/graphql",
     cors<cors.CorsRequest>({
       origin: process.env.CORS_ORIGIN,
     }),
@@ -87,8 +99,8 @@ const main = async () => {
     })
   );
 
-  app.get('/', (_: Request, res: Response) => {
-    res.send('Hello');
+  app.get("/", (_: Request, res: Response) => {
+    res.send("Hello");
   });
 
   const PORT = process.env.PORT;
