@@ -18,10 +18,11 @@ const constants_1 = require("../constants");
 const User_1 = require("../entities/User");
 let UserResolver = class UserResolver {
     me({ req }) {
-        if (!req.session.userId) {
+        console.log("Request came in", req.user);
+        if (!req.user) {
             return null;
         }
-        return User_1.User.findOne(req.session.userId);
+        return req.user;
     }
     logout({ req, res }) {
         return new Promise((resolve) => req.session.destroy((err) => {

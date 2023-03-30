@@ -26,7 +26,7 @@ __decorate([
 ], User.prototype, "fullName", void 0);
 __decorate([
     (0, type_graphql_1.Field)(),
-    (0, typeorm_1.Column)({ unique: true }),
+    (0, typeorm_1.Column)({ unique: false }),
     __metadata("design:type", String)
 ], User.prototype, "email", void 0);
 __decorate([

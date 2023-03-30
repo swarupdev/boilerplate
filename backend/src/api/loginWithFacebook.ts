@@ -6,7 +6,7 @@ const router = express.Router();
 router.get(
   "/login/facebook",
   passport.authenticate("facebook", {
-    scope: ["profile", "email"],
+    scope: ["email"],
   })
 );
 

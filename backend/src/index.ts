@@ -11,6 +11,7 @@ import session from "express-session";
 import Redis from "ioredis";
 import morgan from "morgan";
 import helmet from "helmet";
+import http from "http";
 import { buildSchema } from "type-graphql";
 import { COOKIE_NAME, __prod__ } from "./constants";
 import { dataSource } from "./dataSource";
@@ -21,6 +22,7 @@ import { Request, Response } from "express";
 import passport from "passport";
 import api from "./api";
 import { errorHandler, notFound } from "./errorHandlers";
+import { ApolloServerPluginDrainHttpServer } from "@apollo/server/plugin/drainHttpServer";
 require("./auth/passport");
 require("./auth/passportGoogleSSO");
 require("./auth/passportFacebookSSO");
@@ -57,6 +59,7 @@ const main = async () => {
   app.set("trust proxy", 1);
   app.use(morgan("dev"));
   app.use(helmet());
+  console.log("using cors", process.env.CORS_ORIGIN);
   app.use(
     cors({
       origin: process.env.CORS_ORIGIN,
@@ -83,16 +86,32 @@ const main = async () => {
     })
   );
 
+  app.use(passport.initialize());
+  app.use(passport.session());
+
+  app.get("/", (_: Request, res: Response) => {
+    res.send("Hello");
+  });
+
+  app.use("/api", api);
+
+  const httpServer = http.createServer(app);
+
   const apolloServer = new ApolloServer<MyContext>({
     schema: await buildSchema({
       resolvers: [UserResolver],
       validate: false,
     }),
-    plugins: [ApolloServerPluginLandingPageGraphQLPlayground()],
+    plugins: [ApolloServerPluginDrainHttpServer({ httpServer })],
+    // plugins: [ApolloServerPluginLandingPageGraphQLPlayground()],
+    // plugins: [
+    //   ApolloServerPluginLandingPageGraphQLPlayground({
+    //     settings: {
+    //       "request.credentials": "include",
+    //     },
+    //   }),
+    // ],
   });
-
-  app.use(passport.initialize());
-  app.use(passport.session());
 
   await apolloServer.start();
 
@@ -100,6 +119,7 @@ const main = async () => {
     "/graphql",
     cors<cors.CorsRequest>({
       origin: process.env.CORS_ORIGIN,
+      credentials: true,
     }),
     json(),
     //@ts-ignore
@@ -111,20 +131,17 @@ const main = async () => {
       }),
     })
   );
-
-  app.get("/", (_: Request, res: Response) => {
-    res.send("Hello");
-  });
-
-  app.use("/api", api);
-
   app.use(notFound);
   app.use(errorHandler);
 
   const PORT = process.env.PORT;
-  app.listen(PORT, () => {
-    console.log(`Server started at port ${PORT}`);
-  });
+  // app.listen(PORT, () => {
+  //   console.log(`Server started at port ${PORT}`);
+  // });
+  await new Promise<void>((resolve) =>
+    httpServer.listen({ port: PORT }, resolve)
+  );
+  console.log(`🚀 Server ready at port ${PORT}`);
 };
 
 main().catch((err) => {

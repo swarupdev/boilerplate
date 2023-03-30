@@ -33,11 +33,13 @@ export class UserResolver {
   @Query(() => User, { nullable: true })
   me(@Ctx() { req }: MyContext) {
     // you are not logged in
-    if (!req.session.userId) {
+    console.log("Request came in", req.user);
+    if (!req.user) {
       return null;
     }
+    return req.user;
 
-    return User.findOne(req.session.userId);
+    // return User.findOne(req.session.userId);
   }
 
   @Mutation(() => Boolean)

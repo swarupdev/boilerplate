@@ -4,7 +4,6 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 require("dotenv-safe/config");
-const server_plugin_landing_page_graphql_playground_1 = require("@apollo/server-plugin-landing-page-graphql-playground");
 const server_1 = require("@apollo/server");
 const connect_redis_1 = __importDefault(require("connect-redis"));
 const cors_1 = __importDefault(require("cors"));
@@ -14,6 +13,7 @@ const express_session_1 = __importDefault(require("express-session"));
 const ioredis_1 = __importDefault(require("ioredis"));
 const morgan_1 = __importDefault(require("morgan"));
 const helmet_1 = __importDefault(require("helmet"));
+const http_1 = __importDefault(require("http"));
 const type_graphql_1 = require("type-graphql");
 const constants_1 = require("./constants");
 const dataSource_1 = require("./dataSource");
@@ -22,6 +22,7 @@ const body_parser_1 = require("body-parser");
 const passport_1 = __importDefault(require("passport"));
 const api_1 = __importDefault(require("./api"));
 const errorHandlers_1 = require("./errorHandlers");
+const drainHttpServer_1 = require("@apollo/server/plugin/drainHttpServer");
 require("./auth/passport");
 require("./auth/passportGoogleSSO");
 require("./auth/passportFacebookSSO");
@@ -50,6 +51,7 @@ const main = async () => {
     app.set("trust proxy", 1);
     app.use((0, morgan_1.default)("dev"));
     app.use((0, helmet_1.default)());
+    console.log("using cors", process.env.CORS_ORIGIN);
     app.use((0, cors_1.default)({
         origin: process.env.CORS_ORIGIN,
         credentials: true,
@@ -70,18 +72,24 @@ const main = async () => {
         secret: "avneoanveoanveanveoanevoa",
         resave: false,
     }));
+    app.use(passport_1.default.initialize());
+    app.use(passport_1.default.session());
+    app.get("/", (_, res) => {
+        res.send("Hello");
+    });
+    app.use("/api", api_1.default);
+    const httpServer = http_1.default.createServer(app);
     const apolloServer = new server_1.ApolloServer({
         schema: await (0, type_graphql_1.buildSchema)({
             resolvers: [user_1.UserResolver],
             validate: false,
         }),
-        plugins: [(0, server_plugin_landing_page_graphql_playground_1.ApolloServerPluginLandingPageGraphQLPlayground)()],
+        plugins: [(0, drainHttpServer_1.ApolloServerPluginDrainHttpServer)({ httpServer })],
     });
-    app.use(passport_1.default.initialize());
-    app.use(passport_1.default.session());
     await apolloServer.start();
     app.use("/graphql", (0, cors_1.default)({
         origin: process.env.CORS_ORIGIN,
+        credentials: true,
     }), (0, body_parser_1.json)(), (0, express4_1.expressMiddleware)(apolloServer, {
         context: ({ req, res }) => ({
             req,
@@ -89,16 +97,11 @@ const main = async () => {
             redis,
         }),
     }));
-    app.get("/", (_, res) => {
-        res.send("Hello");
-    });
-    app.use("/api", api_1.default);
     app.use(errorHandlers_1.notFound);
     app.use(errorHandlers_1.errorHandler);
     const PORT = process.env.PORT;
-    app.listen(PORT, () => {
-        console.log(`Server started at port ${PORT}`);
-    });
+    await new Promise((resolve) => httpServer.listen({ port: PORT }, resolve));
+    console.log(`🚀 Server ready at port ${PORT}`);
 };
 main().catch((err) => {
     console.log(err);

@@ -1,0 +1,9 @@
+overwrite: true
+schema: "https://swarupdev-cautious-goggles-7q5xrx6jpxqhq6q-5000.preview.app.github.dev/graphql"
+documents: "src/graphql/**/*.graphql"
+generates:
+  src/generated/graphql.tsx:
+    plugins:
+      - "typescript"
+      - "typescript-operations"
+      - "typescript-react-apollo"
