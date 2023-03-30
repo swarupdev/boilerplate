@@ -12,11 +12,19 @@ const express_1 = __importDefault(require("express"));
 const express4_1 = require("@apollo/server/express4");
 const express_session_1 = __importDefault(require("express-session"));
 const ioredis_1 = __importDefault(require("ioredis"));
+const morgan_1 = __importDefault(require("morgan"));
+const helmet_1 = __importDefault(require("helmet"));
 const type_graphql_1 = require("type-graphql");
 const constants_1 = require("./constants");
 const dataSource_1 = require("./dataSource");
 const user_1 = require("./resolvers/user");
 const body_parser_1 = require("body-parser");
+const passport_1 = __importDefault(require("passport"));
+const api_1 = __importDefault(require("./api"));
+const errorHandlers_1 = require("./errorHandlers");
+require("./auth/passport");
+require("./auth/passportGoogleSSO");
+require("./auth/passportFacebookSSO");
 const main = async () => {
     let retries = 10;
     while (retries) {
@@ -40,6 +48,8 @@ const main = async () => {
         password: process.env.REDIS_PASSWORD,
     });
     app.set("trust proxy", 1);
+    app.use((0, morgan_1.default)("dev"));
+    app.use((0, helmet_1.default)());
     app.use((0, cors_1.default)({
         origin: process.env.CORS_ORIGIN,
         credentials: true,
@@ -67,6 +77,8 @@ const main = async () => {
         }),
         plugins: [(0, server_plugin_landing_page_graphql_playground_1.ApolloServerPluginLandingPageGraphQLPlayground)()],
     });
+    app.use(passport_1.default.initialize());
+    app.use(passport_1.default.session());
     await apolloServer.start();
     app.use("/graphql", (0, cors_1.default)({
         origin: process.env.CORS_ORIGIN,
@@ -80,6 +92,9 @@ const main = async () => {
     app.get("/", (_, res) => {
         res.send("Hello");
     });
+    app.use("/api", api_1.default);
+    app.use(errorHandlers_1.notFound);
+    app.use(errorHandlers_1.errorHandler);
     const PORT = process.env.PORT;
     app.listen(PORT, () => {
         console.log(`Server started at port ${PORT}`);

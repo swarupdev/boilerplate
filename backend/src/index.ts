@@ -9,6 +9,8 @@ import express from "express";
 import { expressMiddleware } from "@apollo/server/express4";
 import session from "express-session";
 import Redis from "ioredis";
+import morgan from "morgan";
+import helmet from "helmet";
 import { buildSchema } from "type-graphql";
 import { COOKIE_NAME, __prod__ } from "./constants";
 import { dataSource } from "./dataSource";
@@ -16,6 +18,14 @@ import { UserResolver } from "./resolvers/user";
 import { json } from "body-parser";
 import { MyContext } from "./types";
 import { Request, Response } from "express";
+import passport from "passport";
+import api from "./api";
+import { errorHandler, notFound } from "./errorHandlers";
+require("./auth/passport");
+require("./auth/passportGoogleSSO");
+require("./auth/passportFacebookSSO");
+// import passport from "passport";
+// import { GraphQLLocalStrategy } from "graphql-passport";
 
 const main = async () => {
   let retries = 10;
@@ -45,6 +55,8 @@ const main = async () => {
   });
 
   app.set("trust proxy", 1);
+  app.use(morgan("dev"));
+  app.use(helmet());
   app.use(
     cors({
       origin: process.env.CORS_ORIGIN,
@@ -79,7 +91,8 @@ const main = async () => {
     plugins: [ApolloServerPluginLandingPageGraphQLPlayground()],
   });
 
-  // @ts-ignore
+  app.use(passport.initialize());
+  app.use(passport.session());
 
   await apolloServer.start();
 
@@ -102,6 +115,11 @@ const main = async () => {
   app.get("/", (_: Request, res: Response) => {
     res.send("Hello");
   });
+
+  app.use("/api", api);
+
+  app.use(notFound);
+  app.use(errorHandler);
 
   const PORT = process.env.PORT;
   app.listen(PORT, () => {

@@ -37,6 +37,9 @@ services:
     depends_on:
       - db
       - redis
+    volumes:
+      - .:/usr/src/backend
+      - /usr/src/backend/node_modules
 networks:
   boilerplate-network:
     driver: bridge
