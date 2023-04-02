@@ -4,5 +4,11 @@
     "files": [
       "static/chunks/node_modules_pnpm_apollo_client_3_7_10_wxfjnvblbhu4ianu4f2qg722fu_node_modules_apollo_client_-375633.js"
     ]
+  },
+  "map.tsx -> ../components/Map/MapPage": {
+    "id": "map.tsx -> ../components/Map/MapPage",
+    "files": [
+      "static/chunks/src_components_Map_MapPage_tsx.js"
+    ]
   }
 }
