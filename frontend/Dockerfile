@@ -12,11 +12,13 @@ RUN npm install -g pnpm
 RUN npm install -g --unsafe-perm=true --allow-root
 # RUN npm install -g typescript
 
+RUN pnpm config set unsafe-perm true
+
 RUN pnpm install
 
 COPY . .
 
-CMD ["sh", "-c", "npm run dev"]
+CMD ["sh", "-c", "pnpm run dev"]
 
 EXPOSE 5000
 

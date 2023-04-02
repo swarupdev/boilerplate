@@ -140,7 +140,7 @@ const MapPage: React.FC<mapProps> = ({}) => {
               latitude: e.latlng.lat,
               longitude: e.latlng.lng,
             });
-            setAddress(null);
+            // setAddress(null);
             getAddress(e.latlng.lat, e.latlng.lng);
             console.log(latitudeAndLongitudeActual);
           }}
