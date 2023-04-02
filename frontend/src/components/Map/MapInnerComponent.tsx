@@ -37,7 +37,13 @@ const MapInnerComponent: React.FC<MapInnerComponentProps> = ({
       map.fitBounds([initialLatLng]);
       map.zoomOut(5);
     }
-  }, [bounds, initialLatLng]);
+  }, [bounds]);
+
+  useEffect(() => {
+    if (latlng[0] && latlng[1]) {
+      map.flyTo(latlng);
+    }
+  }, [latlng]);
 
   return null;
 };
