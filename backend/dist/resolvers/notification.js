@@ -15,13 +15,14 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.SubscriptionResolver = void 0;
 const type_graphql_1 = require("type-graphql");
 const SubscriptionDetail_1 = require("../entities/SubscriptionDetail");
+const sendNotification_1 = require("../utils/sendNotification");
 let SubscriptionResolver = class SubscriptionResolver {
-    async subscribe(options) {
+    async subscribe(endpoint, auth, p256dh) {
         try {
             await SubscriptionDetail_1.SubscriptionDetail.create({
-                endpoint: options.endpoint,
-                auth: options.auth,
-                p256dh: options.p256dh,
+                endpoint: endpoint,
+                auth: auth,
+                p256dh: p256dh,
             }).save();
             return true;
         }
@@ -30,14 +31,37 @@ let SubscriptionResolver = class SubscriptionResolver {
         }
         return false;
     }
+    async sendNotification(endpoint, auth, p256dh, message) {
+        const subscription = {
+            endpoint: endpoint,
+            expirationTime: null,
+            keys: {
+                auth: auth,
+                p256dh: p256dh,
+            },
+        };
+        const payload = JSON.stringify({ title: message });
+        await (0, sendNotification_1.sendNotification)(subscription, payload);
+    }
 };
 __decorate([
     (0, type_graphql_1.Mutation)(() => Boolean),
-    __param(0, (0, type_graphql_1.Arg)('options')),
+    __param(0, (0, type_graphql_1.Arg)("endpoint")),
+    __param(1, (0, type_graphql_1.Arg)("auth")),
+    __param(2, (0, type_graphql_1.Arg)("p256dh")),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [SubscriptionDetail_1.SubscriptionDetail]),
+    __metadata("design:paramtypes", [String, String, String]),
     __metadata("design:returntype", Promise)
 ], SubscriptionResolver.prototype, "subscribe", null);
+__decorate([
+    __param(0, (0, type_graphql_1.Arg)("endpoint")),
+    __param(1, (0, type_graphql_1.Arg)("auth")),
+    __param(2, (0, type_graphql_1.Arg)("p256dh")),
+    __param(3, (0, type_graphql_1.Arg)("message")),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, String, String, String]),
+    __metadata("design:returntype", Promise)
+], SubscriptionResolver.prototype, "sendNotification", null);
 SubscriptionResolver = __decorate([
     (0, type_graphql_1.Resolver)(SubscriptionDetail_1.SubscriptionDetail)
 ], SubscriptionResolver);

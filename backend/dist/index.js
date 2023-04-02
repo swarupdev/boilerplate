@@ -23,6 +23,7 @@ const passport_1 = __importDefault(require("passport"));
 const api_1 = __importDefault(require("./api"));
 const errorHandlers_1 = require("./errorHandlers");
 const drainHttpServer_1 = require("@apollo/server/plugin/drainHttpServer");
+const notification_1 = require("./resolvers/notification");
 require("./auth/passport");
 require("./auth/passportGoogleSSO");
 require("./auth/passportFacebookSSO");
@@ -81,7 +82,7 @@ const main = async () => {
     const httpServer = http_1.default.createServer(app);
     const apolloServer = new server_1.ApolloServer({
         schema: await (0, type_graphql_1.buildSchema)({
-            resolvers: [user_1.UserResolver],
+            resolvers: [user_1.UserResolver, notification_1.SubscriptionResolver],
             validate: false,
         }),
         plugins: [(0, drainHttpServer_1.ApolloServerPluginDrainHttpServer)({ httpServer })],

@@ -23,6 +23,7 @@ import passport from "passport";
 import api from "./api";
 import { errorHandler, notFound } from "./errorHandlers";
 import { ApolloServerPluginDrainHttpServer } from "@apollo/server/plugin/drainHttpServer";
+import { SubscriptionResolver } from "./resolvers/notification";
 require("./auth/passport");
 require("./auth/passportGoogleSSO");
 require("./auth/passportFacebookSSO");
@@ -99,7 +100,7 @@ const main = async () => {
 
   const apolloServer = new ApolloServer<MyContext>({
     schema: await buildSchema({
-      resolvers: [UserResolver],
+      resolvers: [UserResolver, SubscriptionResolver],
       validate: false,
     }),
     plugins: [ApolloServerPluginDrainHttpServer({ httpServer })],
